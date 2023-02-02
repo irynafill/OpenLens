@@ -37,7 +37,7 @@ jobs:
       with:
         repository: lensapp/lens
         path: lens
-        ref: v${{ env.LENS_VERSION }}
+        ref: ${{ env.LENS_VERSION }}
         fetch-depth: 1
     - name: Patch Upstream Lens
       run: |
