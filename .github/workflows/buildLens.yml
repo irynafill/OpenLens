@@ -28,7 +28,7 @@ jobs:
       run: |
         curl -s https://api.github.com/repos/lensapp/lens/releases | jq -r '[.[] | select(.prerelease == false)][0] | .tag_name[1:]' > version
         echo "LENS_VERSION=$(cat version)" >> $GITHUB_ENV
-        echo "$LENS_VERSION"
+        echo "$(LENS_VERSION)"
         echo "$GITHUB_ENV"
       shell: bash
     - uses: actions/setup-node@v3
@@ -39,7 +39,7 @@ jobs:
       with:
         repository: lensapp/lens
         path: lens
-        ref: ${{ env.LENS_VERSION }}
+        ref: v${{ env.LENS_VERSION }}
         fetch-depth: 1
     - name: Patch Upstream Lens
       run: |
