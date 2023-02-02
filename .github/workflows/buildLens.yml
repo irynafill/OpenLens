@@ -23,17 +23,17 @@ jobs:
     steps:
     # Runs a single command using the runners shell
     - name: Checkout OpenLens
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
     - name: Export version to variable
       run: |
             export LENS_VERSION=$(cat version)
             echo "LENS_VERSION=$LENS_VERSION" >> $GITHUB_ENV
       shell: bash
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v2
       with:
         node-version: 16.19.0
     - name: Checkout Upstream Lens
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
       with:
         repository: lensapp/lens
         path: lens
@@ -114,7 +114,7 @@ jobs:
       shell: bash
       working-directory: lens/packages/open-lens/dist
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v2
       if: github.ref != 'refs/heads/main'
       with:
         name: OpenLens-${{ matrix.os }}
