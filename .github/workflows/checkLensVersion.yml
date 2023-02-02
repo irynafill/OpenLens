@@ -23,3 +23,4 @@ jobs:
       run: |
         curl -s https://api.github.com/repos/lensapp/lens/releases | jq -r '[.[] | select(.prerelease == false)][0] | .tag_name[1:]' > version
         echo "LENS_VERSION=$(cat version)" >> $GITHUB_ENV
+        echo "Latest Lens version - $GITHUB_ENV"
