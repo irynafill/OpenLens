@@ -104,18 +104,4 @@ jobs:
           lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.rpm
           lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.zip
           lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.exe
-          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.sha256
-    - name: Latest
-      uses: softprops/action-gh-release@v0.1.15
-      if: github.ref == 'refs/heads/main'
-      with:
-        tag_name: Latest
-        files: | 
-          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.dmg
-          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.AppImage
-          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.deb
-          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.rpm
-          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.zip
-          lens/packages/open-lens/dist/OpenLens.Setup.${{ env.LENS_VERSION }}.exe
-          lens/packages/open-lens/dist/lates*.yml
-          
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.sha256          
