@@ -91,7 +91,7 @@ jobs:
         else
           yarn
           yarn run build
-          yarn run build:app
+          yarn run build:app --verbose
           cp packages/open-lens/dist/OpenLens*.exe releasefiles/OpenLens-${{ env.LENS_VERSION }}.exe
           cp packages/open-lens/dist/OpenLens*.exe packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.exe
         fi
