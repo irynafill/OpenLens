@@ -1,0 +1,121 @@
+# This is a basic workflow that is manually triggered
+
+name: Build Lens
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 360
+    steps:
+    # Runs a single command using the runners shell
+    - name: Checkout OpenLens
+      uses: actions/checkout@v3
+    - name: Export version to variable
+      run: |
+        curl -s https://api.github.com/repos/lensapp/lens/releases | jq -r '[.[] | select(.prerelease == false)][0] | .tag_name[1:]' > version
+        echo "LENS_VERSION=$(cat version)" >> $GITHUB_ENV
+        echo "LENS_VERSION=$(cat version)"
+        echo "$(cat version)"
+        echo "$GITHUB_ENV"
+      shell: bash
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16.19.0
+    - name: Checkout Upstream Lens
+      uses: actions/checkout@v3
+      with:
+        repository: lensapp/lens
+        path: lens
+        ref: v${{ env.LENS_VERSION }}
+        fetch-depth: 1
+    - name: Patch Upstream Lens
+      run: |
+        node update.js
+    - name: Build Lens
+      run: |
+        mkdir releasefiles
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          choco install visualstudio2019buildtools visualstudio2019-workload-vctools
+        fi
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          yarn
+          yarn run build
+          yarn run build:app
+          cp packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.x86_64.AppImage releasefiles/OpenLens-${{ env.LENS_VERSION }}.AppImage
+          cp packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.amd64.deb releasefiles/OpenLens-${{ env.LENS_VERSION }}.deb
+          cp packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.x86_64.rpm releasefiles/OpenLens-${{ env.LENS_VERSION }}.rpm
+          cp packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.arm64.AppImage releasefiles/OpenLens-${{ env.LENS_VERSION }}.arm64.AppImage
+          cp packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.arm64.deb releasefiles/OpenLens-${{ env.LENS_VERSION }}.arm64.deb
+          cp packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.aarch64.rpm releasefiles/OpenLens-${{ env.LENS_VERSION }}.arm64.rpm
+        else
+          yarn
+          yarn run build
+          yarn run build:app
+          cp packages/open-lens/dist/OpenLens*.exe releasefiles/OpenLens-${{ env.LENS_VERSION }}.exe
+          cp packages/open-lens/dist/OpenLens*.exe packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.exe
+        fi
+      shell: bash
+      working-directory: lens
+          
+    - name: Calculate SHA256 checksum
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          certutil -hashfile OpenLens-${{ env.LENS_VERSION }}.exe SHA256 | tee OpenLens-${{ env.LENS_VERSION }}.exe.sha256
+        else
+          for filename in OpenLens-${{ env.LENS_VERSION }}*; do shasum -a 256 ${filename} | tee ${filename}.sha256 ; done
+        fi
+      shell: bash
+      working-directory: lens/packages/open-lens/dist
+
+    - uses: actions/upload-artifact@v3
+      if: github.ref != 'refs/heads/main'
+      with:
+        name: OpenLens-${{ matrix.os }}
+        retention-days: 5
+        path: |
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.dmg
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.AppImage
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.deb
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.rpm
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.zip
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.exe
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.sha256
+    - name: Generate Changelog
+      run: curl -s https://api.github.com/repos/lensapp/lens/releases/latest | jq -r 'select(.prerelease == false) | .body[0:]' > ${{ github.workspace }}-CHANGELOG.txt
+    - name: Release
+      uses: softprops/action-gh-release@v0.1.15
+      if: github.ref == 'refs/heads/main'
+      with:
+        tag_name: v${{ env.LENS_VERSION }}
+        body_path: ${{ github.workspace }}-CHANGELOG.txt
+        files: | 
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.dmg
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.AppImage
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.deb
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.rpm
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.zip
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.exe
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.sha256
+    - name: Latest
+      uses: softprops/action-gh-release@v0.1.15
+      if: github.ref == 'refs/heads/main'
+      with:
+        tag_name: Latest
+        files: | 
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.dmg
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.AppImage
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.deb
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.rpm
+          lens/packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}*.zip
+          lens/packages/open-lens/dist/OpenLens.Setup.${{ env.LENS_VERSION }}.exe
+          lens/packages/open-lens/dist/lates*.yml
+          
