@@ -19,6 +19,8 @@ jobs:
       matrix:
         os: [ubuntu-20.04, macos-23.0.2, windows-latest]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     timeout-minutes: 360
     steps:
     # Runs a single command using the runners shell
