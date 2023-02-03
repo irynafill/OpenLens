@@ -42,9 +42,6 @@ jobs:
         path: lens
         ref: v${{ env.LENS_VERSION }}
         fetch-depth: 1
-    - name: Patch Upstream Lens
-      run: |
-        node update.js
     - name: Build Lens
       run: |
         mkdir releasefiles
