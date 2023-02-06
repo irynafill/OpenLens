@@ -54,13 +54,6 @@ jobs:
           choco install visualstudio2019buildtools visualstudio2019-workload-vctools
         fi
         if [ "$RUNNER_OS" == "macOS" ]; then
-          if [ "${CSC_LINK}" = "" ]; then
-            unset CSC_LINK
-          fi
-            
-          if [ "${CSC_KEY_PASSWORD}" = "" ]; then
-            unset CSC_KEY_PASSWORD
-          fi
           yarn
           yarn run build
           yarn run build:app
@@ -91,23 +84,12 @@ jobs:
         else
           yarn
           yarn run build
-          yarn run build:app --verbose
+          yarn run build:app
           cp packages/open-lens/dist/OpenLens*.exe releasefiles/OpenLens-${{ env.LENS_VERSION }}.exe
           cp packages/open-lens/dist/OpenLens*.exe packages/open-lens/dist/OpenLens-${{ env.LENS_VERSION }}.exe
         fi
       shell: bash
       working-directory: lens
-      env:
-          APPBUNDLEID: "io.kontena.lens-app"
-          APPLEID: ${{ secrets.APPLEID }}
-          APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
-          CSC_LINK: ${{ runner.os == 'macos' && secrets.CSC_LINK || secrets.CSC_LINK_WIN }}
-          CSC_KEY_PASSWORD: ${{ runner.os == 'macos' && secrets.CSC_KEY_PASSWORD || secrets.CSC_KEY_PASSWORD_WIN}}
-          CSC_LINK_WIN: ${{ secrets.CSC_LINK_WIN }}
-          CSC_KEY_PASSWORD_WIN: ${{ secrets.CSC_KEY_PASSWORD_WIN }}
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD_WIN }}
-          CSC_FOR_PULL_REQUEST: true
           
     - name: Calculate SHA256 checksum
       run: |
